@@ -8,13 +8,17 @@ option objc_class_prefix = "HLW";
 package br.com.zup;
 
 service PropostaGrpcService {
-  rpc send (PropostaGrpcRequest) returns (PropostaGrpcReply) {}
+  rpc cria (CriaPropostaRequest) returns (CriaPropostaResponse) {}
 }
 
-message PropostaGrpcRequest {
-  string name = 1;
+message CriaPropostaRequest {
+  string documento = 1;
+  string email = 2;
+  string nome = 3;
+  string endereco = 4;
+  double salario = 5;
 }
 
-message PropostaGrpcReply {
-  string message = 1;
+message CriaPropostaResponse {
+  string urlNovaProposta = 1;
 }
