@@ -20,5 +20,5 @@ message CriaPropostaRequest {
 }
 
 message CriaPropostaResponse {
-  string urlNovaProposta = 1;
+  string idProposta = 1;
 }
