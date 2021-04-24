@@ -26,6 +26,9 @@ analise:
   financeira:
     api: ${ANALISE_FINANCEIRA:`http://localhost:9999`}
 
+cartoes:
+  api: ${API_CARTOES:`http://localhost:8888`}
+
 endpoints:
   all:
     sensitive: false

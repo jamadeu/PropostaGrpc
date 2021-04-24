@@ -2,6 +2,7 @@ package br.com.zup.proposta
 
 import br.com.zup.analise.ResultadoAnalise
 import br.com.zup.analise.SolicitacaoAnaliseRequest
+import br.com.zup.cartao.Cartao
 import br.com.zup.compartilhado.anotacoes.CpfCnpj
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -41,7 +42,10 @@ class Proposta(
     var propostaElegivel: Boolean = false,
 
     @Enumerated(EnumType.STRING)
-    var statusProposta: StatusProposta = StatusProposta.PENDENTE
+    var statusProposta: StatusProposta = StatusProposta.PENDENTE,
+
+    @OneToOne(mappedBy = "proposta", cascade = [CascadeType.ALL])
+    var cartao: Cartao
 ) {
     @Id
     @GeneratedValue
@@ -50,7 +54,7 @@ class Proposta(
     @Column(nullable = false, updatable = false)
     val criadaEm: LocalDateTime = LocalDateTime.now()
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     var atualizadaEm: LocalDateTime = LocalDateTime.now()
 
     fun resultadoAnalise(resultado: ResultadoAnalise) {
