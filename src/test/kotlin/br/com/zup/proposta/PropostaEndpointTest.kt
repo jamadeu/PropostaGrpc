@@ -17,6 +17,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.math.BigDecimal
 import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
@@ -120,6 +121,28 @@ internal class PropostaEndpointTest(
         with(response) {
             assertEquals(status.code, Status.INVALID_ARGUMENT.code)
             assertFalse(repository.existsByDocumento(request.documento))
+        }
+    }
+
+    @Test
+    fun `Retorna INVALID_ARGUMENT quando ja existe uma proposta para o documento`() {
+        val request = criaPropostaRequest()
+        repository.save(Proposta(
+            documento = request.documento,
+            email = request.email,
+            nome = request.nome,
+            endereco = request.endereco,
+            salario = BigDecimal.valueOf(request.salario)
+        ))
+
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.cria(request)
+        }
+
+        with(response) {
+            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
+            assertTrue(message!!.contains("Ja existe uma proposta para este cliente"))
+            assertEquals(repository.findAll().size, 1)
         }
     }
 

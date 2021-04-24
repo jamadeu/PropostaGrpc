@@ -18,19 +18,19 @@ import javax.validation.ConstraintViolationException
 @InterceptorBean(ErrorHandler::class)
 class ExceptionHandlerInterceptor : MethodInterceptor<BindableService, Any?> {
 
-    private val LOGGER = LoggerFactory.getLogger(this.javaClass)
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     override fun intercept(context: MethodInvocationContext<BindableService, Any?>): Any? {
         try {
-             return context.proceed()
+            return context.proceed()
         } catch (e: Exception) {
-            LOGGER.error(e.message)
-
+            logger.error(e.message)
 
             val statusError = when (e) {
                 is IllegalArgumentException -> Status.INVALID_ARGUMENT.withDescription(e.message).asRuntimeException()
                 is IllegalStateException -> Status.FAILED_PRECONDITION.withDescription(e.message).asRuntimeException()
                 is ConstraintViolationException -> handleConstraintValidationException(e)
+                is PropostaJaExisteException -> Status.INVALID_ARGUMENT.withDescription(e.message).asRuntimeException()
                 else -> Status.UNKNOWN.withDescription("unexpected error happened").asRuntimeException()
             }
 
@@ -56,7 +56,7 @@ class ExceptionHandlerInterceptor : MethodInterceptor<BindableService, Any?> {
             .addDetails(com.google.protobuf.Any.pack(badRequest)) // com.google.protobuf.Any
             .build()
 
-        LOGGER.info("$statusProto")
+        logger.info("$statusProto")
         return StatusProto.toStatusRuntimeException(statusProto) // io.grpc.protobuf.StatusProto
     }
 
