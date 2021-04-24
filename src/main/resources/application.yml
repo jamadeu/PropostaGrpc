@@ -5,6 +5,8 @@ micronaut:
 grpc:
   server:
     port: ${SERVER_PORT:50051}
+    health:
+      enable: true
 
 datasources:
   default:
@@ -22,4 +24,12 @@ jpa.default.properties.hibernate.format_sql: true
 
 analise:
   financeira:
-    api: ${ANALISE_FINANCEIRA:`http://localhost:9999/api/solicitacao`}
+    api: ${ANALISE_FINANCEIRA:`http://localhost:9999`}
+
+endpoints:
+  all:
+    sensitive: false
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
