@@ -2,12 +2,18 @@ package br.com.zup.proposta
 
 import br.com.zup.CriaPropostaRequest
 import br.com.zup.PropostaGrpcServiceGrpc
+import br.com.zup.analise.HttpClientAnaliseFinanceira
+import br.com.zup.analise.ResultadoAnalise
+import br.com.zup.analise.SolicitacaoAnaliseRequest
+import br.com.zup.analise.SolicitacaoAnaliseResponse
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -17,7 +23,10 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EmptySource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
+import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import java.math.BigDecimal
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
@@ -26,14 +35,20 @@ internal class PropostaEndpointTest(
     private val grpcClient: PropostaGrpcServiceGrpc.PropostaGrpcServiceBlockingStub
 ) {
 
+    @Inject
+    lateinit var analiseClient: HttpClientAnaliseFinanceira
+
     @BeforeEach
     fun setup() {
         repository.deleteAll()
     }
 
     @Test
-    fun `Registra nova proposta`() {
+    fun `Registra nova proposta elegivel quando api analise retorna status 200`() {
         val request = criaPropostaRequest()
+        `when`(analiseClient.solicitacaoAnalise(solicitacaoAnaliseRequest(request)))
+            .thenReturn(HttpResponse.ok(solicitacaoAnaliseResponse(request, ResultadoAnalise.SEM_RESTRICAO)))
+
         val response = grpcClient.cria(request)
 
         with(response) {
@@ -44,8 +59,30 @@ internal class PropostaEndpointTest(
             assertEquals(proposta.nome, request.nome)
             assertEquals(proposta.endereco, request.endereco)
             assertEquals(proposta.salario.toDouble(), request.salario)
+            assertTrue(proposta.propostaElegivel)
         }
     }
+
+    @Test
+    fun `Registra nova proposta nao elegivel quando api analise retorna status 422`() {
+        val request = criaPropostaRequest()
+        `when`(analiseClient.solicitacaoAnalise(solicitacaoAnaliseRequest(request)))
+            .thenReturn(HttpResponse.ok(solicitacaoAnaliseResponse(request, ResultadoAnalise.COM_RESTRICAO)))
+
+        val response = grpcClient.cria(request)
+
+        with(response) {
+            val proposta = repository.findByDocumento(request.documento).orElseThrow()
+            assertNotNull(this)
+            assertEquals(proposta.id.toString(), idProposta)
+            assertEquals(proposta.email, request.email)
+            assertEquals(proposta.nome, request.nome)
+            assertEquals(proposta.endereco, request.endereco)
+            assertEquals(proposta.salario.toDouble(), request.salario)
+            assertFalse(proposta.propostaElegivel)
+        }
+    }
+
 
     @ParameterizedTest
     @EmptySource
@@ -127,13 +164,15 @@ internal class PropostaEndpointTest(
     @Test
     fun `Retorna INVALID_ARGUMENT quando ja existe uma proposta para o documento`() {
         val request = criaPropostaRequest()
-        repository.save(Proposta(
-            documento = request.documento,
-            email = request.email,
-            nome = request.nome,
-            endereco = request.endereco,
-            salario = BigDecimal.valueOf(request.salario)
-        ))
+        repository.save(
+            Proposta(
+                documento = request.documento,
+                email = request.email,
+                nome = request.nome,
+                endereco = request.endereco,
+                salario = BigDecimal.valueOf(request.salario)
+            )
+        )
 
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.cria(request)
@@ -145,6 +184,12 @@ internal class PropostaEndpointTest(
             assertEquals(repository.findAll().size, 1)
         }
     }
+
+    private fun solicitacaoAnaliseRequest(request: CriaPropostaRequest) =
+        SolicitacaoAnaliseRequest(request.documento, request.nome, "request.id")
+
+    private fun solicitacaoAnaliseResponse(request: CriaPropostaRequest, resultadoAnalise: ResultadoAnalise) =
+        SolicitacaoAnaliseResponse(request.documento, request.nome, "request.id", resultadoAnalise)
 
     private fun criaPropostaRequest(
         documento: String? = "324.739.930-50",
@@ -204,6 +249,11 @@ internal class PropostaEndpointTest(
                     .build()
             }
         }
+    }
+
+    @MockBean(HttpClientAnaliseFinanceira::class)
+    fun analiseClient(): HttpClientAnaliseFinanceira {
+        return Mockito.mock(HttpClientAnaliseFinanceira::class.java)
     }
 
     @Factory
