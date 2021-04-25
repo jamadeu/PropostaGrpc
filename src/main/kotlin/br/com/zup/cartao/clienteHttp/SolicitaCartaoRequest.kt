@@ -1,4 +1,4 @@
-package br.com.zup.cartao
+package br.com.zup.cartao.clienteHttp
 
 data class SolicitaCartaoRequest(
     val documento: String,

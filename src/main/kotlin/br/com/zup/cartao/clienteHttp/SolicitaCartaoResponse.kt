@@ -1,5 +1,6 @@
-package br.com.zup.cartao
+package br.com.zup.cartao.clienteHttp
 
+import br.com.zup.cartao.Cartao
 import br.com.zup.cartao.renegociacao.RenegociacaoResponse
 import br.com.zup.cartao.vencimento.VencimentoResponse
 import br.com.zup.proposta.Proposta

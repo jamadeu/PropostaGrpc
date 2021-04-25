@@ -29,6 +29,9 @@ analise:
 cartoes:
   api: ${API_CARTOES:`http://localhost:8888`}
 
+scheduler:
+  delay: ${SCHEDULER_DELAY:`1m`}
+
 endpoints:
   all:
     sensitive: false

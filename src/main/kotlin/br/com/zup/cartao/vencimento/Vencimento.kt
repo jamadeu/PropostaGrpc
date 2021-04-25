@@ -21,10 +21,8 @@ class Vencimento(
     val dia: Int,
 
     @field:NotNull
-    @field:Past
     @Column(nullable = false)
     val dataCriacao: LocalDateTime
-
 ) {
 
     @Id

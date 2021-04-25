@@ -10,3 +10,6 @@ datasources:
 logger:
   levels:
     io.micronaut.transaction: DEBUG
+
+scheduler:
+  delay: 1s

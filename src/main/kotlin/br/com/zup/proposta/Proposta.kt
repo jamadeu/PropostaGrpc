@@ -45,7 +45,7 @@ class Proposta(
     var statusProposta: StatusProposta = StatusProposta.PENDENTE,
 
     @OneToOne(mappedBy = "proposta", cascade = [CascadeType.ALL])
-    var cartao: Cartao
+    var cartao: Cartao? = null
 ) {
     @Id
     @GeneratedValue
@@ -74,6 +74,11 @@ class Proposta(
     private fun concluiProposta() {
         statusProposta = StatusProposta.CONCLUIDA
         atualizadaEm = LocalDateTime.now()
+    }
+
+    fun adicionaCartao(cartao: Cartao){
+        this.cartao = cartao
+        concluiProposta()
     }
 
 }
