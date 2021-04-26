@@ -1,4 +1,4 @@
-package br.com.zup.proposta
+package br.com.zup.proposta.cria
 
 import br.com.zup.CriaPropostaRequest
 import br.com.zup.PropostaGrpcServiceGrpc
@@ -6,12 +6,10 @@ import br.com.zup.analise.HttpClientAnaliseFinanceira
 import br.com.zup.analise.ResultadoAnalise
 import br.com.zup.analise.SolicitacaoAnaliseRequest
 import br.com.zup.analise.SolicitacaoAnaliseResponse
-import io.grpc.ManagedChannel
+import br.com.zup.proposta.Proposta
+import br.com.zup.proposta.PropostaRepository
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.micronaut.context.annotation.Factory
-import io.micronaut.grpc.annotation.GrpcChannel
-import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -27,7 +25,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
 import javax.inject.Inject
-import javax.inject.Singleton
 
 @MicronautTest(transactional = false)
 internal class PropostaEndpointTest(
@@ -256,12 +253,12 @@ internal class PropostaEndpointTest(
         return Mockito.mock(HttpClientAnaliseFinanceira::class.java)
     }
 
-    @Factory
-    class Clients {
-        @Singleton
-        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel):
-                PropostaGrpcServiceGrpc.PropostaGrpcServiceBlockingStub {
-            return PropostaGrpcServiceGrpc.newBlockingStub(channel)
-        }
-    }
+//    @Factory
+//    class Clients {
+//        @Singleton
+//        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel):
+//                PropostaGrpcServiceGrpc.PropostaGrpcServiceBlockingStub {
+//            return PropostaGrpcServiceGrpc.newBlockingStub(channel)
+//        }
+//    }
 }

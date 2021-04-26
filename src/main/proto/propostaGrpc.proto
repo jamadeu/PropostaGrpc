@@ -9,6 +9,13 @@ package br.com.zup;
 
 service PropostaGrpcService {
   rpc cria (CriaPropostaRequest) returns (CriaPropostaResponse) {}
+  rpc consulta(ConsultaPropostaRequest) returns (ConsultaPropostaResponse) {}
+}
+
+enum StatusProposta{
+  STATUS_DESCONHECIDO = 0;
+  PENDENTE = 1;
+  CONCLUIDA = 2;
 }
 
 message CriaPropostaRequest {
@@ -21,4 +28,19 @@ message CriaPropostaRequest {
 
 message CriaPropostaResponse {
   string idProposta = 1;
+}
+
+message ConsultaPropostaRequest {
+  string idProposta = 1;
+}
+
+message ConsultaPropostaResponse {
+  string idProposta = 1;
+  string nome = 2;
+  string documento = 3;
+  string endereco = 4;
+  double salario = 5;
+  StatusProposta status = 6;
+  bool elegivel = 7;
+  string cartao = 8;
 }

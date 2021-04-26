@@ -1,5 +1,6 @@
 package br.com.zup.proposta
 
+import br.com.zup.StatusProposta
 import br.com.zup.analise.ResultadoAnalise
 import br.com.zup.analise.SolicitacaoAnaliseRequest
 import br.com.zup.cartao.Cartao

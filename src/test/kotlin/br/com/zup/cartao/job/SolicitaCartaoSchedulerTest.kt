@@ -1,12 +1,12 @@
 package br.com.zup.cartao.job
 
+import br.com.zup.StatusProposta
 import br.com.zup.cartao.clienteHttp.HttpClientCartao
 import br.com.zup.cartao.clienteHttp.SolicitaCartaoRequest
 import br.com.zup.cartao.clienteHttp.SolicitaCartaoResponse
 import br.com.zup.cartao.vencimento.VencimentoResponse
 import br.com.zup.proposta.Proposta
 import br.com.zup.proposta.PropostaRepository
-import br.com.zup.proposta.StatusProposta
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
