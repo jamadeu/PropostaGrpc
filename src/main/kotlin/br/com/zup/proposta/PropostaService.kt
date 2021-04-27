@@ -1,6 +1,7 @@
 package br.com.zup.proposta
 
 import br.com.zup.analise.HttpClientAnaliseFinanceira
+import br.com.zup.compartilhado.excecoes.NaoLocalizadoException
 import br.com.zup.compartilhado.excecoes.PropostaJaExisteException
 import io.micronaut.validation.Validated
 import org.slf4j.LoggerFactory
@@ -44,6 +45,6 @@ class PropostaService(
     fun consulta(id: UUID): Proposta {
         logger.info("Consulta proposta $id")
         return repository.findById(id)
-            .orElseThrow { throw IllegalArgumentException("Proposta nao localizada") }
+            .orElseThrow { throw NaoLocalizadoException("Proposta nao localizada") }
     }
 }

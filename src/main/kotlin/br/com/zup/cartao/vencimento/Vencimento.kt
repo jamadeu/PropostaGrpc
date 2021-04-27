@@ -8,7 +8,6 @@ import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
-import javax.validation.constraints.Past
 
 @Entity
 class Vencimento(
@@ -24,7 +23,6 @@ class Vencimento(
     @Column(nullable = false)
     val dataCriacao: LocalDateTime
 ) {
-
     @Id
     @GeneratedValue
     val id: UUID? = null

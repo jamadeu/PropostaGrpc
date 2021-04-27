@@ -12,6 +12,10 @@ service PropostaGrpcService {
   rpc consulta(ConsultaPropostaRequest) returns (ConsultaPropostaResponse) {}
 }
 
+service BiometriaGrpcService{
+  rpc cadastra (CadastraBiometriaRequest) returns (CadastraBiometriaResponse) {}
+}
+
 enum StatusProposta{
   STATUS_DESCONHECIDO = 0;
   PENDENTE = 1;
@@ -44,3 +48,14 @@ message ConsultaPropostaResponse {
   bool elegivel = 7;
   string cartao = 8;
 }
+
+message CadastraBiometriaRequest {
+  string idCartao = 1;
+  string biometria = 2;
+}
+
+message CadastraBiometriaResponse{
+  string idBiometria = 1;
+}
+
+

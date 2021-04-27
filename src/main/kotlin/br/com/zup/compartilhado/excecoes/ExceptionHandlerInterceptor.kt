@@ -31,6 +31,7 @@ class ExceptionHandlerInterceptor : MethodInterceptor<BindableService, Any?> {
                 is IllegalStateException -> Status.FAILED_PRECONDITION.withDescription(e.message).asRuntimeException()
                 is ConstraintViolationException -> handleConstraintValidationException(e)
                 is PropostaJaExisteException -> Status.INVALID_ARGUMENT.withDescription(e.message).asRuntimeException()
+                is NaoLocalizadoException -> Status.NOT_FOUND.withDescription(e.message).asRuntimeException()
                 else -> Status.UNKNOWN.withDescription("unexpected error happened").asRuntimeException()
             }
 

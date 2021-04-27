@@ -252,13 +252,4 @@ internal class PropostaEndpointTest(
     fun analiseClient(): HttpClientAnaliseFinanceira {
         return Mockito.mock(HttpClientAnaliseFinanceira::class.java)
     }
-
-//    @Factory
-//    class Clients {
-//        @Singleton
-//        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel):
-//                PropostaGrpcServiceGrpc.PropostaGrpcServiceBlockingStub {
-//            return PropostaGrpcServiceGrpc.newBlockingStub(channel)
-//        }
-//    }
 }

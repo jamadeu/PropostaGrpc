@@ -1,6 +1,7 @@
 package br.com.zup.cartao
 
 import br.com.zup.cartao.aviso.Aviso
+import br.com.zup.cartao.biometria.Biometria
 import br.com.zup.cartao.bloqueio.Bloqueio
 import br.com.zup.cartao.carteira.Carteira
 import br.com.zup.cartao.parcela.Parcela
@@ -40,7 +41,7 @@ class Cartao(
     @Column(updatable = false, nullable = false)
     val emitidoEm: LocalDateTime,
 
-    @OneToOne(cascade = [CascadeType.MERGE])
+    @OneToOne(cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     val vencimento: Vencimento,
 
     @OneToOne(cascade = [CascadeType.MERGE])
@@ -57,9 +58,20 @@ class Cartao(
 
     @OneToMany(cascade = [CascadeType.MERGE])
     val bloqueios: Set<Bloqueio> = mutableSetOf<Bloqueio>(),
+
+    @OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
+    var biometrias: Set<Biometria> = mutableSetOf()
 ) {
     @Id
     @GeneratedValue
     val id: UUID? = null
+
+    @Column(nullable = false)
+    var atualizadoEm: LocalDateTime = LocalDateTime.now()
+
+    fun adicionaBiometria(biometria: Biometria) {
+        biometrias = biometrias.plus(biometria)
+        atualizadoEm = LocalDateTime.now()
+    }
 }
 

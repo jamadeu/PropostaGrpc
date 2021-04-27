@@ -68,7 +68,7 @@ internal class PropostaEndpointTest(
 
         with(response) {
             assertNotNull(this)
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
+            assertEquals(status.code, Status.NOT_FOUND.code)
             assertTrue(message!!.contains("Proposta nao localizada"))
         }
     }
@@ -82,6 +82,11 @@ internal class PropostaEndpointTest(
             grpcClient.consulta(
                 consultaPropostaRequest(id)
             )
+        }
+
+        with(response){
+            assertNotNull(this)
+            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
         }
     }
 

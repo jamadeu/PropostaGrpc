@@ -10,6 +10,7 @@ import br.com.zup.proposta.PropostaRepository
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,7 +21,7 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
 
-@MicronautTest(transactional = false)
+@MicronautTest
 internal class SolicitaCartaoSchedulerTest(
     private val repository: PropostaRepository
 ) {
@@ -31,7 +32,6 @@ internal class SolicitaCartaoSchedulerTest(
 
     @BeforeEach
     fun setup() {
-        repository.deleteAll()
         proposta = repository.save(
             Proposta(
                 documento = "417.533.020-80",
@@ -43,6 +43,11 @@ internal class SolicitaCartaoSchedulerTest(
                 statusProposta = StatusProposta.PENDENTE
             )
         )
+    }
+
+    @AfterEach
+    fun cleanUp(){
+        repository.deleteAll()
     }
 
     @Test
