@@ -8,8 +8,10 @@ import br.com.zup.analise.SolicitacaoAnaliseRequest
 import br.com.zup.analise.SolicitacaoAnaliseResponse
 import br.com.zup.proposta.Proposta
 import br.com.zup.proposta.PropostaRepository
+import com.google.rpc.BadRequest
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
+import io.grpc.protobuf.StatusProto
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -17,10 +19,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EmptySource
-import org.junit.jupiter.params.provider.NullSource
-import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import java.math.BigDecimal
@@ -35,6 +33,15 @@ internal class PropostaEndpointTest(
     @Inject
     lateinit var analiseClient: HttpClientAnaliseFinanceira
 
+    private val criaPropostaRequest: CriaPropostaRequest =
+        CriaPropostaRequest.newBuilder()
+            .setDocumento("324.739.930-50")
+            .setEmail("email@test.com")
+            .setNome("Nome")
+            .setEndereco("Endereco")
+            .setSalario(2000.00)
+            .build()
+
     @BeforeEach
     fun setup() {
         repository.deleteAll()
@@ -42,7 +49,7 @@ internal class PropostaEndpointTest(
 
     @Test
     fun `Registra nova proposta elegivel quando api analise retorna status 200`() {
-        val request = criaPropostaRequest()
+        val request = criaPropostaRequest
         `when`(analiseClient.solicitacaoAnalise(solicitacaoAnaliseRequest(request)))
             .thenReturn(HttpResponse.ok(solicitacaoAnaliseResponse(request, ResultadoAnalise.SEM_RESTRICAO)))
 
@@ -62,7 +69,7 @@ internal class PropostaEndpointTest(
 
     @Test
     fun `Registra nova proposta nao elegivel quando api analise retorna status 422`() {
-        val request = criaPropostaRequest()
+        val request = criaPropostaRequest
         `when`(analiseClient.solicitacaoAnalise(solicitacaoAnaliseRequest(request)))
             .thenReturn(HttpResponse.ok(solicitacaoAnaliseResponse(request, ResultadoAnalise.COM_RESTRICAO)))
 
@@ -80,87 +87,9 @@ internal class PropostaEndpointTest(
         }
     }
 
-
-    @ParameterizedTest
-    @EmptySource
-    @NullSource
-    @ValueSource(strings = ["cpfInvalido"])
-    fun `Retorna INVALID_ARGUMENT quando cpf eh vazio, nulo ou invalido`(cpf: String?) {
-        val request = criaPropostaRequest(documento = cpf)
-        val response = assertThrows<StatusRuntimeException> {
-            grpcClient.cria(request)
-        }
-
-        with(response) {
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
-            cpf?.let {
-                assertFalse(repository.existsByDocumento(it))
-            }
-        }
-    }
-
-    @ParameterizedTest
-    @EmptySource
-    @NullSource
-    @ValueSource(strings = ["emailInvalido"])
-    fun `Retorna INVALID_ARGUMENT quando email eh vazio, nulo ou invalido`(email: String?) {
-        val request = criaPropostaRequest(email = email)
-        val response = assertThrows<StatusRuntimeException> {
-            grpcClient.cria(request)
-        }
-
-        with(response) {
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
-            assertFalse(repository.existsByDocumento(request.documento))
-        }
-    }
-
-    @ParameterizedTest
-    @EmptySource
-    @NullSource
-    fun `Retorna INVALID_ARGUMENT quando nome eh vazio ou nulo`(nome: String?) {
-        val request = criaPropostaRequest(nome = nome)
-        val response = assertThrows<StatusRuntimeException> {
-            grpcClient.cria(request)
-        }
-
-        with(response) {
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
-            assertFalse(repository.existsByDocumento(request.documento))
-        }
-    }
-
-    @ParameterizedTest
-    @EmptySource
-    @NullSource
-    fun `Retorna INVALID_ARGUMENT quando endereco eh vazio ou nulo`(endereco: String?) {
-        val request = criaPropostaRequest(endereco = endereco)
-        val response = assertThrows<StatusRuntimeException> {
-            grpcClient.cria(request)
-        }
-
-        with(response) {
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
-            assertFalse(repository.existsByDocumento(request.documento))
-        }
-    }
-
-    @Test
-    fun `Retorna INVALID_ARGUMENT quando salario eh negativo`() {
-        val request = criaPropostaRequest(salario = -0.01)
-        val response = assertThrows<StatusRuntimeException> {
-            grpcClient.cria(request)
-        }
-
-        with(response) {
-            assertEquals(status.code, Status.INVALID_ARGUMENT.code)
-            assertFalse(repository.existsByDocumento(request.documento))
-        }
-    }
-
     @Test
     fun `Retorna INVALID_ARGUMENT quando ja existe uma proposta para o documento`() {
-        val request = criaPropostaRequest()
+        val request = criaPropostaRequest
         repository.save(
             Proposta(
                 documento = request.documento,
@@ -182,71 +111,34 @@ internal class PropostaEndpointTest(
         }
     }
 
+    @Test
+    fun `Retorna INVALID_ARGUMENT quando dados invalidos`() {
+        val response = assertThrows<StatusRuntimeException> {
+            grpcClient.cria(CriaPropostaRequest.newBuilder().setSalario(-0.1).build())
+        }
+
+        with(response) {
+            val details = StatusProto.fromThrowable(this)?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
+            val violations = details.fieldViolationsList.map { it.field to it.description }
+
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("request with invalid parameters", status.description)
+            assertTrue(violations.contains(Pair("nome", "não deve estar em branco")))
+            assertTrue(violations.contains(Pair("documento", "não deve estar em branco")))
+            assertTrue(violations.contains(Pair("documento", "não é um documento valido")))
+            assertTrue(violations.contains(Pair("salario", "deve ser maior ou igual a 0")))
+            assertTrue(violations.contains(Pair("endereco", "não deve estar em branco")))
+            assertTrue(violations.contains(Pair("email", "não deve estar em branco")))
+            assertEquals(6, violations.size)
+        }
+    }
+
     private fun solicitacaoAnaliseRequest(request: CriaPropostaRequest) =
         SolicitacaoAnaliseRequest(request.documento, request.nome, "request.id")
 
     private fun solicitacaoAnaliseResponse(request: CriaPropostaRequest, resultadoAnalise: ResultadoAnalise) =
         SolicitacaoAnaliseResponse(request.documento, request.nome, "request.id", resultadoAnalise)
 
-    private fun criaPropostaRequest(
-        documento: String? = "324.739.930-50",
-        email: String? = "email@test.com",
-        nome: String? = "Nome",
-        endereco: String? = "Endereco",
-        salario: Double? = 2000.00
-    ): CriaPropostaRequest {
-        return when {
-            documento == null -> {
-                CriaPropostaRequest.newBuilder()
-                    .setEmail(email)
-                    .setNome(nome)
-                    .setEndereco(endereco)
-                    .setSalario(salario!!)
-                    .build()
-            }
-            email == null -> {
-                CriaPropostaRequest.newBuilder()
-                    .setDocumento(documento)
-                    .setNome(nome)
-                    .setEndereco(endereco)
-                    .setSalario(salario!!)
-                    .build()
-            }
-            nome == null -> {
-                CriaPropostaRequest.newBuilder()
-                    .setDocumento(documento)
-                    .setEmail(email)
-                    .setEndereco(endereco)
-                    .setSalario(salario!!)
-                    .build()
-            }
-            endereco == null -> {
-                CriaPropostaRequest.newBuilder()
-                    .setDocumento(documento)
-                    .setEmail(email)
-                    .setNome(nome)
-                    .setSalario(salario!!)
-                    .build()
-            }
-            salario == null -> {
-                CriaPropostaRequest.newBuilder()
-                    .setDocumento(documento)
-                    .setEmail(email)
-                    .setNome(nome)
-                    .setEndereco(endereco)
-                    .build()
-            }
-            else -> {
-                CriaPropostaRequest.newBuilder()
-                    .setDocumento(documento)
-                    .setEmail(email)
-                    .setNome(nome)
-                    .setEndereco(endereco)
-                    .setSalario(salario)
-                    .build()
-            }
-        }
-    }
 
     @MockBean(HttpClientAnaliseFinanceira::class)
     fun analiseClient(): HttpClientAnaliseFinanceira {
