@@ -16,6 +16,10 @@ service BiometriaGrpcService{
   rpc cadastra (CadastraBiometriaRequest) returns (CadastraBiometriaResponse) {}
 }
 
+service CartaoGrpcService{
+  rpc bloqueia (BloqueiaCartaoRequest) returns (BloqueiaCartaoResponse) {}
+}
+
 enum StatusProposta{
   STATUS_DESCONHECIDO = 0;
   PENDENTE = 1;
@@ -58,4 +62,14 @@ message CadastraBiometriaResponse{
   string idBiometria = 1;
 }
 
+message BloqueiaCartaoRequest{
+  string idCartao = 1;
+  string ipCliente = 2;
+  string userAgent = 3;
+  string titular = 4;
+}
+
+message BloqueiaCartaoResponse{
+  string message = 1;
+}
 

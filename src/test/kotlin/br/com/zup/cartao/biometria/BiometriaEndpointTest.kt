@@ -77,7 +77,7 @@ internal class BiometriaEndpointTest(
     }
 
     @AfterEach
-    fun cleanUp(){
+    fun cleanUp() {
         cartaoRepository.deleteAll()
         propostaRepository.deleteAll()
     }
@@ -105,7 +105,7 @@ internal class BiometriaEndpointTest(
             grpcClient.cadastra(cadastraBiometriaRequest(biometria = biometria, idCartao = cartao.id.toString()))
         }
 
-        with(response){
+        with(response) {
             assertNotNull(this)
             assertEquals(status.code, Status.INVALID_ARGUMENT.code)
             assertTrue(message!!.contains("Biometria nao pode ser nula ou vazia"))
@@ -123,7 +123,7 @@ internal class BiometriaEndpointTest(
             grpcClient.cadastra(cadastraBiometriaRequest(biometria = "Biometria", idCartao = idCartao))
         }
 
-        with(response){
+        with(response) {
             assertNotNull(this)
             assertEquals(status.code, Status.INVALID_ARGUMENT.code)
             val cartaoAtualizado = cartaoRepository.findById(cartao.id!!).orElseThrow()
@@ -132,13 +132,14 @@ internal class BiometriaEndpointTest(
     }
 
     @Test
-    fun`Retorna NOT_FOUND quando cartao nao existe`(){
+    fun `Retorna NOT_FOUND quando cartao nao existe`() {
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.cadastra(
-                cadastraBiometriaRequest(biometria = "Biometria", idCartao = UUID.randomUUID().toString()))
+                cadastraBiometriaRequest(biometria = "Biometria", idCartao = UUID.randomUUID().toString())
+            )
         }
 
-        with(response){
+        with(response) {
             assertNotNull(this)
             assertEquals(status.code, Status.NOT_FOUND.code)
             assertTrue(message!!.contains("Cartao nao localizado"))

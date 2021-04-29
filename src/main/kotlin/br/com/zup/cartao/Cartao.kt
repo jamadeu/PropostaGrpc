@@ -48,19 +48,19 @@ class Cartao(
     val renegociacao: Renegociacao?,
 
     @OneToMany(cascade = [CascadeType.MERGE])
-    val parcelas: Set<Parcela> = mutableSetOf<Parcela>(),
+    val parcelas: MutableSet<Parcela> = mutableSetOf(),
 
     @OneToMany(cascade = [CascadeType.MERGE])
-    val carteiras: Set<Carteira> = mutableSetOf<Carteira>(),
+    val carteiras: MutableSet<Carteira> = mutableSetOf(),
 
     @OneToMany(cascade = [CascadeType.MERGE])
-    val avisos: Set<Aviso> = mutableSetOf<Aviso>(),
+    val avisos: MutableSet<Aviso> = mutableSetOf(),
 
     @OneToMany(cascade = [CascadeType.MERGE])
-    val bloqueios: Set<Bloqueio> = mutableSetOf<Bloqueio>(),
+    val bloqueios: MutableSet<Bloqueio> = mutableSetOf(),
 
     @OneToMany(cascade = [CascadeType.MERGE], fetch = FetchType.EAGER)
-    var biometrias: Set<Biometria> = mutableSetOf()
+    var biometrias: MutableSet<Biometria> = mutableSetOf()
 ) {
     @Id
     @GeneratedValue
@@ -70,7 +70,7 @@ class Cartao(
     var atualizadoEm: LocalDateTime = LocalDateTime.now()
 
     fun adicionaBiometria(biometria: Biometria) {
-        biometrias = biometrias.plus(biometria)
+        biometrias.add(biometria)
         atualizadoEm = LocalDateTime.now()
     }
 }
